@@ -1,0 +1,476 @@
+(No subject)
+[Draft]
+This message hasn't been sent.
+Saved on: Mon 03/12/2018 20:04
+ 
+
+__________________________________________
+web.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" version="3.1">
+  <display-name>SpringApp</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+  
+  
+  <servlet>
+<servlet-name>spring-web</servlet-name>
+<servlet-class>
+                    org.springframework.web.servlet.DispatcherServlet
+                </servlet-class>
+         <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>
+                /WEB-INF/spring-web-servlet.xml
+            </param-value>
+      </init-param>
+<load-on-startup>1</load-on-startup>
+</servlet>
+
+<servlet-mapping>
+<servlet-name>spring-web</servlet-name>
+<url-pattern>/</url-pattern>
+</servlet-mapping>
+<context-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>
+                /WEB-INF/JPAContext.xml
+            </param-value>
+     </context-param>
+     <listener>
+            <listener-class>
+                org.springframework.web.context.ContextLoaderListener
+            </listener-class>
+     </listener>
+        
+        
+</web-app>
+_____________________________________________
+spring-web-servlet.xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xsi:schemaLocation="
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+<context:component-scan base-package="com.cg" />
+
+<bean
+class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+<property name="prefix">
+<value>/WEB-INF/views/</value>
+</property>
+<property name="suffix">
+<value>.jsp</value>
+</property>
+</bean>
+
+<mvc:cors>
+<mvc:mapping path="/**" 
+allowed-origins="http://localhost:8080"
+allowed-methods="POST, GET, PUT, DELETE,HEAD"
+allow-credentials="false"
+allowed-headers="Content-Type,X-Requested-With,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization"
+exposed-headers="Origin,Access-Control-Request-Method,Access-Control-Allow-Origin,Access-Control-Allow-Credentials"
+/>
+</mvc:cors> 
+<mvc:resources mapping="/resources/**" location="/resources/" />
+ 
+<mvc:annotation-driven />
+</beans>
+_____________________________________________
+JPAContext.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+
+    <context:component-scan base-package="com.cg"/>
+    <context:property-placeholder location="classpath:application.properties" />
+    
+     <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+     
+    <!-- This bean will hold references to our database -->
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+    </bean>
+    
+    <!-- Spring way of entity manager factory configuration -->
+    
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+          <property name="dataSource" ref="dataSource"/>
+          <property name="packagesToScan" value="com.cg"/>
+          <property name="persistenceProviderClass" value="org.hibernate.jpa.HibernatePersistenceProvider"/>
+          <property name="jpaPropertyMap">
+              <map>
+                  <entry key="hibernate.dialect" value="org.hibernate.dialect.Oracle10gDialect"/>
+                  <entry key="hibernate.hbm2ddl.auto" value="create"/>
+              </map>
+          </property>
+      </bean>
+      
+    <!-- This bean will handle all transaction within an application -->
+    <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+    
+    <!-- This is required to handle transactions via Annotations like @Transactional -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+ </beans>
+
+_____________________________________________
+pom.xml
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.cg.MavenDemo</groupId>
+  <artifactId>ProcAppSL</artifactId>
+  <packaging>war</packaging>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>MavenDemo Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  
+  <properties>
+<jdk.version>1.8</jdk.version>
+<spring.version>4.3.0.RELEASE</spring.version>
+<jstl.version>1.2</jstl.version>
+<servletapi.version>3.0.1</servletapi.version>
+</properties>
+  
+  <dependencies>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+<groupId>org.springframework</groupId>
+<artifactId>spring-webmvc</artifactId>
+<version>${spring.version}</version>
+</dependency>
+<dependency>
+<groupId>javax.servlet</groupId>
+<artifactId>javax.servlet-api</artifactId>
+<version>${servletapi.version}</version>
+<scope>provided</scope>
+</dependency>
+<dependency>
+<groupId>javax.servlet</groupId>
+<artifactId>jstl</artifactId>
+<version>${jstl.version}</version>
+</dependency>
+    <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.7.5</version>
+    </dependency>
+    <dependency>
+  <groupId>com.google.code.gson</groupId>
+  <artifactId>gson</artifactId>
+  <version>2.3</version>
+</dependency>
+    
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+ 
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-orm</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>5.3.6.Final</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
+      <version>1.4</version>
+    </dependency>
+    
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>8.0.11</version>
+</dependency>
+    
+  <!-- https://mvnrepository.com/artifact/org.springframework/spring-hibernate -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-hibernate</artifactId>
+    <version>1.2.9</version>
+</dependency>
+ 
+    
+  </dependencies>
+  
+  
+  <build>
+
+    <plugins>
+      <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      
+       <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <warSourceDirectory>src/main/webapp</warSourceDirectory>
+          <warName>ProcAppSL</warName>
+  <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+  <groupId>org.apache.tomcat.maven</groupId>
+  <artifactId>tomcat7-maven-plugin</artifactId>
+  <version>2.1</version>
+  <configuration>
+         <port>8082</port>
+         <path>/</path>
+     <warSourceDirectory>src/main/webapp</warSourceDirectory>
+    </configuration>
+</plugin>
+    </plugins>
+  </build>
+</project>
+_____________________________________________
+_____________________________________________
+_____________________________________________
+spring-web-servlet.xml
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xsi:schemaLocation="
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+<context:component-scan base-package="com.cg" />
+
+<bean
+class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+<property name="prefix">
+<value>/WEB-INF/views/</value>
+</property>
+<property name="suffix">
+<value>.jsp</value>
+</property>
+</bean>
+
+<mvc:resources mapping="/resources/**" location="/resources/" />
+  <mvc:resources location="scripts/" mapping="/scripts/**" />
+  
+<mvc:annotation-driven />
+</beans>
+_____________________________________
+web.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" version="3.1">
+  <display-name>SpringApp</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+  
+  
+  <servlet>
+<servlet-name>spring-web</servlet-name>
+<servlet-class>
+                    org.springframework.web.servlet.DispatcherServlet
+                </servlet-class>
+<load-on-startup>1</load-on-startup>
+</servlet>
+
+<servlet-mapping>
+<servlet-name>spring-web</servlet-name>
+<url-pattern>/</url-pattern>
+</servlet-mapping>
+<context-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>
+                /WEB-INF/spring-web-servlet.xml
+            </param-value>
+        </context-param>
+        <listener>
+            <listener-class>
+                org.springframework.web.context.ContextLoaderListener
+            </listener-class>
+        </listener>
+        
+        
+</web-app>
+
+_________________________________________
+pom.xml
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.cg.MavenDemo</groupId>
+  <artifactId>PracApp</artifactId>
+  <packaging>war</packaging>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>MavenDemo Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  
+  <properties>
+<jdk.version>1.8</jdk.version>
+<spring.version>4.3.0.RELEASE</spring.version>
+<jstl.version>1.2</jstl.version>
+<servletapi.version>3.0.1</servletapi.version>
+</properties>
+  
+  <dependencies>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+  <groupId>com.google.code.gson</groupId>
+  <artifactId>gson</artifactId>
+  <version>2.3</version>
+</dependency>
+    <dependency>
+<groupId>org.springframework</groupId>
+<artifactId>spring-webmvc</artifactId>
+<version>${spring.version}</version>
+</dependency>
+<dependency>
+<groupId>javax.servlet</groupId>
+<artifactId>javax.servlet-api</artifactId>
+<version>${servletapi.version}</version>
+<scope>provided</scope>
+</dependency>
+<dependency>
+<groupId>javax.servlet</groupId>
+<artifactId>jstl</artifactId>
+<version>${jstl.version}</version>
+</dependency>
+    
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-orm</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    
+    <dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-hibernate</artifactId>
+    <version>1.2.9</version>
+</dependency>
+<dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>5.3.6.Final</version>
+    </dependency>
+    
+    <!-- https://mvnrepository.com/artifact/org.webjars/jquery -->
+<dependency>
+    <groupId>org.webjars</groupId>
+    <artifactId>jquery</artifactId>
+    <version>2.1.4</version>
+</dependency>
+    
+  </dependencies>
+  
+  
+  <build>
+
+    <plugins>
+      <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      
+       <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <warSourceDirectory>src/main/webapp</warSourceDirectory>
+          <warName>PracApp</warName>
+  <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+  <groupId>org.apache.tomcat.maven</groupId>
+  <artifactId>tomcat7-maven-plugin</artifactId>
+  <version>2.1</version>
+  <configuration>
+         <port>8080</port>
+         <path>/PracApp</path>
+     <warSourceDirectory>src/main/webapp</warSourceDirectory>
+    </configuration>
+</plugin>
+    </plugins>
+  </build>
+</project>
+
+
+
+
